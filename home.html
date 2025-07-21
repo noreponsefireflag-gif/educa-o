@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Home - Jogos Educativos</title>
+  <style>
+    body { font-family: Arial; background: #eaf6ff; text-align: center; padding: 20px;}
+    h1 { color: #1e88e5; }
+    a, button { display: block; margin: 15px auto; padding: 10px 20px; background: #1e88e5; color: white; text-decoration: none; width: 250px; border-radius: 8px; font-size: 18px; cursor:pointer;}
+    #logout { background:#f44336; }
+    #pontos { font-weight: bold; margin-top: 20px;}
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>Bem-vindo(a) ao Portal Educativo</h1>
+  <div id="pontos">Carregando pontos...</div>
+
+  <a href="jogos/memoria.html">🧠 Jogo da Memória</a>
+  <a href="jogos/quiz.html">📝 Quiz</a>
+  <a href="loja.html">🏪 Loja de Figurinhas</a>
+  <a href="album.html">📖 Álbum de Figurinhas</a>
+  <button id="logout">Sair</button>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_PROJETO.firebaseapp.com",
+      projectId: "SEU_PROJETO",
+      storageBucket: "SEU_PROJETO.appspot.com",
+      messagingSenderId: "SEU_ID",
+      appId: "SEU_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const pontosEl = document.getElementById('pontos');
+    const logoutBtn = document.getElementById('logout');
+
+    auth.onAuthStateChanged(user => {
+      if(!user) {
+        window.location.href = 'index.html';
+      } else {
+        const userRef = db.collection('usuarios').doc(user.uid);
+        userRef.onSnapshot(doc => {
+          if(doc.exists){
+            const data = doc.data();
+            pontosEl.textContent = `Pontos acumulados: ${data.pontos}`;
+          }
+        });
+      }
+    });
+
+    logoutBtn.onclick = () => {
+      auth.signOut();
+    };
+  </script>
+</body>
+</html>

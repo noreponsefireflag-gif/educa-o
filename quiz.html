@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quiz Educativo</title>
+  <style>
+    body { font-family: Arial; background:#eaf6ff; text-align:center; padding:20px;}
+    h1 { color: #1e88e5;}
+    #quiz-box { background:#fff; max-width:600px; margin: 20px auto; padding:20px; border-radius:10px; box-shadow:0 0 10px #aaa;}
+    button { margin:10px; padding:10px; font-size:16px;}
+    a { display:inline-block; margin-top: 20px; color:#1e88e5; text-decoration:none; font-weight:bold;}
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>Quiz Educativo</h1>
+  <div id="quiz-box">
+    <p id="pergunta"></p>
+    <div id="respostas"></div>
+    <p id="feedback"></p>
+    <button onclick="novaPergunta()">Próxima Pergunta</button>
+  </div>
+  <a href="../home.html">⬅️ Voltar</a>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_PROJETO.firebaseapp.com",
+      projectId: "SEU_PROJETO",
+      storageBucket: "SEU_PROJETO.appspot.com",
+      messagingSenderId: "SEU_ID",
+      appId: "SEU_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(user => {
+      if(!user) window.location.href = '../index.html';
+    });
+
+    const perguntas = [
+      {
+        pergunta: "Qual destas é um pronome pessoal?",
+        opcoes: ["Mesa", "Ela", "Bonito"],
+        correta: "Ela"
+      },
+      {
+        pergunta: "Qual sinal usamos para encerrar uma frase?",
+        opcoes: ["Ponto Final", "Vírgula", "Dois Pontos"],
+        correta: "Ponto Final"
+      },
+      {
+        pergunta: "Qual destes é um gênero textual?",
+        opcoes: ["Carta", "Carro", "Árvore"],
+        correta: "Carta"
+      }
+    ];
+
+    let perguntaAtual = 0;
+
+    function mostrarPergunta() {
+      const p = perguntas[perguntaAtual];
+      document.getElementById('pergunta').textContent = p.pergunta;
+      const respostasDiv = document.getElementById('respostas');
+      respostasDiv.innerHTML = '';
+      p.opcoes.forEach(opcao => {
+        const btn = document.createElement('button');
+        btn.textContent = opcao;
+        btn.onclick = () => verificarResposta(opcao);
+        respostasDiv.appendChild(btn);
+      });
+      document.getElementById('feedback').textContent = '';
+    }
+
+    function verificarResposta(resposta) {
+      const correta = perguntas[perguntaAtual].correta;
+      const feedback = document.getElementById('feedback');
+      if (resposta === correta) {
+        feedback.textContent = 'Resposta correta!';
+        feedback.style.color = 'green';
+        salvarPontos(1);
+      } else {
+        feedback.textContent = 'Resposta errada.';
+        feedback.style.color = 'red';
+      }
+    }
+
+    function novaPergunta() {
+      perguntaAtual++;
+      if (perguntaAtual >= perguntas.length) {
+        perguntaAtual = 0;
+      }
+      mostrarPergunta();
+    }
+
+    function salvarPontos(pontos) {
+      const user = auth.currentUser;
+      if (user) {
+        const userRef = db.collection('usuarios').doc(user.uid);
+        userRef.get().then(doc => {
+          if(doc.exists){
+            const data = doc.data();
+            const total = (data.pontos || 0) + pontos;
+            userRef.update({ pontos: total });
+          }
+        });
+      }
+    }
+
+    novaPergunta();
+  </script>
+</body>
+</html>

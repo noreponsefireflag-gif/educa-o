@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login Firebase</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; max-width: 400px; margin: auto; background: #eaf6ff;}
+    input, button { display: block; margin: 10px 0; padding: 10px; width: 100%; }
+    #message { margin-top: 10px; color: red; }
+  </style>
+</head>
+<body>
+
+  <h1>Login</h1>
+
+  <input type="email" id="email" placeholder="Email" />
+  <input type="password" id="senha" placeholder="Senha" />
+  <button id="btnLogin">Entrar</button>
+  <button id="btnCadastrar">Cadastrar</button>
+
+  <div id="message"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_PROJETO.firebaseapp.com",
+      projectId: "SEU_PROJETO",
+      storageBucket: "SEU_PROJETO.appspot.com",
+      messagingSenderId: "SEU_ID",
+      appId: "SEU_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const messageEl = document.getElementById('message');
+    const emailEl = document.getElementById('email');
+    const senhaEl = document.getElementById('senha');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnCadastrar = document.getElementById('btnCadastrar');
+
+    btnCadastrar.onclick = () => {
+      messageEl.textContent = '';
+      auth.createUserWithEmailAndPassword(emailEl.value, senhaEl.value)
+        .then(userCredential => {
+          const user = userCredential.user;
+          db.collection('usuarios').doc(user.uid).set({
+            email: user.email,
+            pontos: 0,
+            figurinhas: []
+          });
+          messageEl.style.color = 'green';
+          messageEl.textContent = 'Usuário cadastrado! Faça login.';
+        })
+        .catch(error => {
+          messageEl.style.color = 'red';
+          messageEl.textContent = error.message;
+        });
+    };
+
+    btnLogin.onclick = () => {
+      messageEl.textContent = '';
+      auth.signInWithEmailAndPassword(emailEl.value, senhaEl.value)
+        .then(userCredential => {
+          window.location.href = 'home.html';
+        })
+        .catch(error => {
+          messageEl.style.color = 'red';
+          messageEl.textContent = error.message;
+        });
+    };
+
+    auth.onAuthStateChanged(user => {
+      if(user){
+        window.location.href = 'home.html';
+      }
+    });
+  </script>
+
+</body>
+</html>
